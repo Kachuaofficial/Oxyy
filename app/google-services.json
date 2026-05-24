@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "300645166874",
+    "project_id": "oxyy-2a3a3",
+    "storage_bucket": "oxyy-2a3a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300645166874:android:424785053aa4657e1d46a3",
+        "android_client_info": {
+          "package_name": "com.invatech.oxy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsjtBYYsjykXqkiBi63fnkTgYXsaycIa0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
