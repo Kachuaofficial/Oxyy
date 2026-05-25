@@ -150,6 +150,38 @@ On Windows:
 .\gradlew.bat :app:compileDebugKotlin
 ```
 
+## Play Store Release
+
+The app is prepared for Google Play Store publishing as a student utility mini project.
+
+Current app version:
+
+```text
+versionName: 1.2
+versionCode: 3
+```
+
+Before uploading to Play Console:
+
+- Build a signed release APK or Android App Bundle.
+- Add the release SHA-1 and SHA-256 fingerprints in Firebase Console.
+- Download the updated `google-services.json` after adding release fingerprints.
+- Keep Google Sign-In enabled in Firebase Authentication.
+- Add the privacy policy URL in Play Console.
+- Use `PRIVACY_POLICY.md` as the privacy policy content.
+
+Release build command:
+
+```powershell
+.\gradlew.bat :app:bundleRelease
+```
+
+The generated Android App Bundle can be uploaded from:
+
+```text
+app/build/outputs/bundle/release/
+```
+
 ## Project Structure
 
 ```text
