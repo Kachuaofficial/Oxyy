@@ -154,6 +154,12 @@ On Windows:
 
 The app is prepared for Google Play Store publishing as a student utility mini project.
 
+Play Store link:
+
+```text
+https://play.google.com/store/apps/details?id=com.invatech.oxy
+```
+
 Current app version:
 
 ```text
