@@ -1,15 +1,19 @@
 package com.invatech.oxy.auth
 
 import android.content.Context
+import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.gms.tasks.Task
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
@@ -52,21 +56,8 @@ class AuthRepository(
 
     suspend fun signInWithGoogle(context: Context): OxyUser {
         val webClientId = context.defaultWebClientId()
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(webClientId)
-            .setAutoSelectEnabled(true)
-            .build()
-
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
-
-        val credential = try {
-            CredentialManager.create(context).getCredential(context, request).credential
-        } catch (exception: GetCredentialException) {
-            throw IllegalStateException(exception.message ?: "Google sign-in was cancelled or unavailable.", exception)
-        }
+        val credentialManager = CredentialManager.create(context)
+        val credential = getGoogleCredential(context, credentialManager, webClientId)
 
         val googleCredential = try {
             GoogleIdTokenCredential.createFrom(credential.data)
@@ -75,10 +66,64 @@ class AuthRepository(
         }
 
         val firebaseCredential = GoogleAuthProvider.getCredential(googleCredential.idToken, null)
-        val authResult = auth.signInWithCredential(firebaseCredential).await()
+        val authResult = try {
+            auth.signInWithCredential(firebaseCredential).await()
+        } catch (exception: Exception) {
+            throw IllegalStateException(exception.toFirebaseAuthMessage(), exception)
+        }
         val firebaseUser = authResult.user ?: throw IllegalStateException("Firebase sign-in completed without a user.")
 
         return ensureUserDocument(firebaseUser)
+    }
+
+    private suspend fun getGoogleCredential(
+        context: Context,
+        credentialManager: CredentialManager,
+        webClientId: String
+    ): Credential {
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(false)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        return try {
+            credentialManager.getCredential(context, request).credential
+        } catch (exception: NoCredentialException) {
+            getExplicitGoogleCredential(context, credentialManager, webClientId)
+        } catch (exception: GetCredentialException) {
+            if (exception.message?.contains("No credentials", ignoreCase = true) == true) {
+                getExplicitGoogleCredential(context, credentialManager, webClientId)
+            } else {
+                throw IllegalStateException(exception.toGoogleSignInMessage(), exception)
+            }
+        }
+    }
+
+    private suspend fun getExplicitGoogleCredential(
+        context: Context,
+        credentialManager: CredentialManager,
+        webClientId: String
+    ): Credential {
+        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId).build()
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(signInWithGoogleOption)
+            .build()
+
+        return try {
+            credentialManager.getCredential(context, request).credential
+        } catch (exception: NoCredentialException) {
+            throw IllegalStateException(
+                "No Google account is available on this device. Add a Google account and try again.",
+                exception
+            )
+        } catch (exception: GetCredentialException) {
+            throw IllegalStateException(exception.toGoogleSignInMessage(), exception)
+        }
     }
 
     suspend fun loadSignedInUser(): OxyUser? {
@@ -164,6 +209,36 @@ class AuthRepository(
             )
         }
         return webClientId
+    }
+
+    private fun GetCredentialException.toGoogleSignInMessage(): String {
+        val rawMessage = message.orEmpty()
+
+        if (
+            rawMessage.contains("account reauth failed", ignoreCase = true) ||
+            rawMessage.contains("[16]", ignoreCase = true)
+        ) {
+            return "Google sign-in is not configured for this app build. Add this build's SHA-1 and SHA-256 fingerprints to the Android app in Firebase, confirm the package name is com.invatech.oxy, enable Google sign-in, then download the updated google-services.json."
+        }
+
+        return rawMessage.takeIf { it.isNotBlank() }
+            ?: "Google sign-in was cancelled or unavailable. Please try again."
+    }
+
+    private fun Exception.toFirebaseAuthMessage(): String {
+        val authException = this as? FirebaseAuthException
+        val rawMessage = message.orEmpty()
+
+        if (
+            authException?.errorCode == "ERROR_APP_NOT_AUTHORIZED" ||
+            rawMessage.contains("not authorized", ignoreCase = true) ||
+            rawMessage.contains("SHA", ignoreCase = true)
+        ) {
+            return "This release build is not authorized for Firebase Auth. Add the release SHA-1 and SHA-256 fingerprints in Firebase Console, then download the updated google-services.json."
+        }
+
+        return rawMessage.takeIf { it.isNotBlank() }
+            ?: "Firebase could not complete Google sign-in. Please try again."
     }
 
     private companion object {

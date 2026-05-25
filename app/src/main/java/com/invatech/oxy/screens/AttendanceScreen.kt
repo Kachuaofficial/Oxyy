@@ -248,8 +248,10 @@ fun CalendarDay(
         AttendanceStatus.HOLIDAY -> MaterialTheme.colorScheme.onSurface
         AttendanceStatus.NOT_MARKED -> if (isSunday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
     }
+    val isUnavailable = !isEnabled || isFutureDate
     val dayBackground = when {
         isSelected -> MaterialTheme.colorScheme.primaryContainer
+        isUnavailable -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)
         else -> bgColor.copy(alpha = if (isEnabled) 1f else 0.24f)
     }
 
@@ -265,8 +267,8 @@ fun CalendarDay(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = if (!isEnabled || isFutureDate) {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f)
+            color = if (isUnavailable) {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.72f)
             } else if (isSelected) {
                 MaterialTheme.colorScheme.onPrimaryContainer
             } else {
