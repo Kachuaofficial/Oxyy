@@ -1,51 +1,115 @@
-# Oxy - Student Attendance Tracker
+# Oxy
 
-Oxy is an Android mini project built as a 4th semester AIML student project. The app helps students track daily attendance, check attendance percentage, plan leaves, and keep their academic profile synced using Firebase.
+**Oxy** is a modern Android attendance tracker built for students. It helps users mark daily attendance, calculate attendance percentage automatically, plan safe leaves, and keep academic profile data synced with Firebase.
 
-## Project Overview
+The project was created as a 4th semester AIML mini project and is designed around a simple goal: make attendance tracking clear, fast, and stress-free.
 
-The main idea of Oxy is to make attendance tracking simple for students. Instead of calculating attendance manually, a student can mark each day as present, absent, or holiday. The app then calculates the attendance percentage, streak, safe leave count, and required present days to reach the target attendance.
+## Highlights
 
-This project uses Jetpack Compose for UI and Firebase for authentication and cloud database storage.
+- Android app built with Kotlin and Jetpack Compose
+- Google Sign-In with Firebase Authentication
+- Cloud Firestore storage for profiles and attendance records
+- Calendar-based attendance marking
+- Present, absent, holiday, and not-marked status support
+- Automatic attendance percentage calculation
+- Safe leave planner and required present-day calculation
+- Attendance streak and quick summary cards
+- Attendance history and student profile screen
+- Material 3 UI with dark mode support
 
-## Features
+## Problem Statement
 
-- Google Sign-In using Firebase Authentication
-- New user profile setup after login
-- Semester and department selection using chips
-- Attendance tracking start date selection
-- Mark attendance from calendar
-- Present, absent, and holiday status support
-- Future dates cannot be marked
-- Sundays are ignored by default unless manually marked
-- Attendance percentage calculation
-- Present, absent, and tracked day summary
-- Attendance streak calculation
-- Leave planner for checking future attendance impact
-- Attendance history screen
-- Google profile image display
-- Firestore database integration
-- Dark mode support with Material 3 theme
+Students often calculate attendance manually, which can lead to mistakes and poor leave planning. It can be difficult to know the exact attendance percentage, how many leaves are safe, or how many present days are required to reach the minimum target.
+
+Oxy solves this by providing a mobile-first attendance tracker that calculates attendance insights automatically and stores records securely in the cloud.
+
+## Project Objective
+
+To develop an Android attendance tracker app that helps students:
+
+- Record daily attendance easily
+- View accurate attendance percentage
+- Track present, absent, and total counted days
+- Plan future leaves without falling below the target
+- Store attendance data securely with Firebase
 
 ## Tech Stack
 
-- Kotlin
-- Android
-- Jetpack Compose
-- Material 3
-- Firebase Authentication
-- Cloud Firestore
-- Google Sign-In / Credential Manager
-- Coil for profile image loading
-- Gradle Kotlin DSL
+| Area | Technology |
+| --- | --- |
+| Language | Kotlin |
+| Platform | Android |
+| Frontend | Jetpack Compose, Material 3 |
+| Backend | Firebase Authentication, Cloud Firestore |
+| Sign-In | Google Sign-In, Credential Manager |
+| State Management | ViewModel, StateFlow |
+| Image Loading | Coil |
+| Build System | Gradle Kotlin DSL |
 
-## Firebase Collections
+## Core Features
 
-The app stores user and attendance data in Firestore.
+### Authentication
+
+- Google Sign-In using Firebase Authentication
+- Firebase user document creation after login
+- Sign-out support from profile screen
+
+### Profile Setup
+
+- Student name and email loaded from Google account
+- Semester selection
+- Department selection
+- Roll number entry
+- Attendance tracking start date selection
+
+### Attendance Tracking
+
+- Calendar-based date selection
+- Mark any tracked date as:
+  - `PRESENT`
+  - `ABSENT`
+  - `HOLIDAY`
+  - `NOT_MARKED`
+- Future dates cannot be marked
+- Sundays are ignored by default unless manually marked
+- Optional reason field for absence
+
+### Attendance Analytics
+
+Oxy calculates:
+
+- Present days
+- Absent days
+- Tracked days
+- Attendance percentage
+- Attendance streak
+- Safe absent days
+- Required present days to reach the target
+
+```text
+Attendance % = Present Days / (Present Days + Absent Days) * 100
+```
+
+Only `PRESENT` and `ABSENT` records are counted. Holidays and unmarked days are ignored in the percentage calculation.
+
+### Leave Planner
+
+The leave planner lets students select upcoming leave dates and preview how those leaves will affect their attendance percentage. This helps students make better attendance decisions before taking leave.
+
+## Screens
+
+| Screen | Purpose |
+| --- | --- |
+| Auth Screen | Google login |
+| Profile Setup Screen | Academic profile setup |
+| Home Screen | Attendance summary, streak, safe leave count, leave planner |
+| Attendance Screen | Calendar-based attendance marking |
+| History Screen | List of saved attendance records |
+| Profile Screen | Student details and sign out |
+
+## Firebase Data Model
 
 ### User Document
-
-Path:
 
 ```text
 users/{uid}
@@ -71,8 +135,6 @@ updatedAt
 
 ### Attendance Records
 
-Path:
-
 ```text
 users/{uid}/attendance/{yyyy-MM-dd}
 ```
@@ -95,32 +157,39 @@ HOLIDAY
 NOT_MARKED
 ```
 
-## Screens
-
-- Auth Screen: Google login
-- Profile Setup Screen: academic profile setup
-- Home Screen: attendance summary and leave planner
-- Attendance Screen: calendar-based attendance marking
-- History Screen: list of all attendance records
-- Profile Screen: student details and sign out
-
-## How Attendance Is Calculated
-
-Only `PRESENT` and `ABSENT` records are counted in attendance percentage.
+## Project Structure
 
 ```text
-Attendance % = Present Days / (Present Days + Absent Days) * 100
+app/src/main/java/com/invatech/oxy
+|-- auth
+|   |-- AuthRepository.kt
+|   `-- AuthViewModel.kt
+|-- data
+|   |-- AttendanceAnalytics.kt
+|   |-- AttendanceRepository.kt
+|   `-- AttendanceViewModel.kt
+|-- navigation
+|   `-- NavDestination.kt
+|-- screens
+|   |-- AuthScreen.kt
+|   |-- AttendanceHistoryScreen.kt
+|   |-- AttendanceScreen.kt
+|   |-- HomeScreen.kt
+|   |-- MainScreen.kt
+|   |-- ProfileScreen.kt
+|   |-- ProfileSetupScreen.kt
+|   `-- UserProfileImage.kt
+`-- ui/theme
+    |-- Color.kt
+    |-- Theme.kt
+    `-- Type.kt
 ```
-
-Holidays and unmarked days are not counted.
-
-Sundays are ignored by default unless the student manually marks that Sunday.
 
 ## Setup Instructions
 
-1. Clone or open the project in Android Studio.
+1. Open the project in Android Studio.
 2. Create a Firebase project.
-3. Add an Android app in Firebase with package name:
+3. Add an Android app in Firebase with this package name:
 
 ```text
 com.invatech.oxy
@@ -134,25 +203,46 @@ app/google-services.json
 ```
 
 6. Enable Google Sign-In in Firebase Authentication.
-7. Add SHA-1/SHA-256 fingerprints in Firebase project settings.
-8. Create a Firestore database.
+7. Add SHA-1 and SHA-256 fingerprints in Firebase project settings.
+8. Create a Cloud Firestore database.
 9. Sync Gradle and run the app.
 
-## Build Command
+## Build Commands
 
-```bash
-./gradlew :app:compileDebugKotlin
-```
-
-On Windows:
+Compile debug Kotlin:
 
 ```powershell
 .\gradlew.bat :app:compileDebugKotlin
 ```
 
-## Play Store Release
+Build release Android App Bundle:
 
-The app is prepared for Google Play Store publishing as a student utility mini project.
+```powershell
+.\gradlew.bat :app:bundleRelease
+```
+
+Generated release bundles are available at:
+
+```text
+app/build/outputs/bundle/release/
+```
+
+## App Version
+
+```text
+versionName: 1.3
+versionCode: 4
+minSdk: 26
+targetSdk: 36
+```
+
+## Play Store
+
+Play Store package:
+
+```text
+com.invatech.oxy
+```
 
 Play Store link:
 
@@ -160,73 +250,27 @@ Play Store link:
 https://play.google.com/store/apps/details?id=com.invatech.oxy
 ```
 
-Current app version:
+Before uploading a release build:
 
-```text
-versionName: 1.2
-versionCode: 3
-```
-
-Before uploading to Play Console:
-
-- Build a signed release APK or Android App Bundle.
-- Add the release SHA-1 and SHA-256 fingerprints in Firebase Console.
-- Download the updated `google-services.json` after adding release fingerprints.
+- Build a signed APK or Android App Bundle.
+- Add release SHA-1 and SHA-256 fingerprints in Firebase Console.
+- Download the updated `google-services.json`.
 - Keep Google Sign-In enabled in Firebase Authentication.
 - Add the privacy policy URL in Play Console.
 - Use `PRIVACY_POLICY.md` as the privacy policy content.
 
-Release build command:
-
-```powershell
-.\gradlew.bat :app:bundleRelease
-```
-
-The generated Android App Bundle can be uploaded from:
-
-```text
-app/build/outputs/bundle/release/
-```
-
-## Project Structure
-
-```text
-app/src/main/java/com/invatech/oxy
-├── auth
-│   ├── AuthRepository.kt
-│   └── AuthViewModel.kt
-├── data
-│   ├── AttendanceAnalytics.kt
-│   ├── AttendanceRepository.kt
-│   └── AttendanceViewModel.kt
-├── navigation
-│   └── NavDestination.kt
-├── screens
-│   ├── AuthScreen.kt
-│   ├── AttendanceHistoryScreen.kt
-│   ├── AttendanceScreen.kt
-│   ├── HomeScreen.kt
-│   ├── MainScreen.kt
-│   ├── ProfileScreen.kt
-│   ├── ProfileSetupScreen.kt
-│   └── UserProfileImage.kt
-└── ui/theme
-    ├── Color.kt
-    ├── Theme.kt
-    └── Type.kt
-```
-
 ## Learning Outcomes
 
-Through this mini project, I learned:
+Through this project, I learned how to:
 
-- How to build Android UI using Jetpack Compose
-- How to use Firebase Authentication with Google Sign-In
-- How to store and read user data from Firestore
-- How to manage app state using ViewModel and StateFlow
-- How to design a simple attendance calculation system
-- How to build a dark-mode friendly Material 3 app
-- How to organize a medium-sized Android project
+- Build Android UI using Jetpack Compose
+- Integrate Firebase Authentication with Google Sign-In
+- Store and read user data from Cloud Firestore
+- Manage app state using ViewModel and StateFlow
+- Design attendance calculation logic
+- Build a dark-mode friendly Material 3 app
+- Organize a medium-sized Android project
+- Prepare an app for release publishing
 
 ## Future Scope
 
@@ -234,16 +278,16 @@ Through this mini project, I learned:
 - Timetable-based automatic attendance suggestions
 - Monthly attendance report export
 - Push notifications for low attendance
-- Edit profile details
+- Editable profile details
 - Teacher/admin portal
 - Charts for monthly attendance trends
 
 ## Author
 
-Made as a 4th semester AIML mini project.
-
 ```text
+Name: Shivam Kumar Mishra
 Project Name: Oxy
 Domain: Android App Development
 Category: Student Utility App
+Academic Context: 4th Semester AIML Mini Project
 ```
